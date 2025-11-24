@@ -22,6 +22,8 @@ from django.conf.urls.static import static
 
 
 urlpatterns = [
+    path('api_user/', include('user.urls')),
+
     path('api_core/', include('core.urls')),
     
     path('core/', include('core.urls')),
