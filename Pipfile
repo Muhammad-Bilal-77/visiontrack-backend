@@ -10,6 +10,9 @@ face-recognition = "*"
 opencv-python = "*"
 numpy = "*"
 pillow = "*"
+bleach = "*"
+djangorestframework = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 

@@ -1,0 +1,97 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mark Attendance</title>
+<style>
+  body { font-family: Arial, sans-serif; background:#f4f4f9; color:#333; }
+  .container { max-width:640px; margin:40px auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,.08); text-align:center; }
+  video { border-radius:6px; max-width:100%; }
+  button { padding:10px 18px; background:#007bff; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+  #result { margin-top:14px; font-weight:600; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h2>Mark Attendance</h2>
+    <video id="video" width="560" height="420" autoplay playsinline></video>
+    <div style="margin-top:12px;">
+      <button id="snap">Mark Attendance</button>
+    </div>
+    <p id="result"></p>
+  </div>
+
+<script>
+// Get CSRF token from cookie (Django default)
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i=0; i<cookies.length; i++){
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')){
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+const video = document.getElementById('video');
+const snapBtn = document.getElementById('snap');
+const resultP = document.getElementById('result');
+
+navigator.mediaDevices.getUserMedia({ video: true })
+  .then(stream => { video.srcObject = stream; })
+  .catch(err => { console.error('Webcam error:', err); resultP.textContent = 'Cannot access webcam'; });
+
+snapBtn.addEventListener('click', async () => {
+    resultP.textContent = 'Processing...';
+
+    // capture current frame
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const dataURL = canvas.toDataURL('image/jpeg');
+
+    // Use FormData to send the image
+    const form = new FormData();
+    form.append('image', dataURL);
+
+    try {
+        const res = await fetch("{% url 'mark_attendance' %}", {
+            method: 'POST',
+            body: form,
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            credentials: 'same-origin'
+        });
+
+        // If server returned non-JSON status, handle it
+        const data = await res.json();
+
+        if (data.status === 'success') {
+            resultP.style.color = 'green';
+            resultP.textContent = data.message;
+        } else {
+            resultP.style.color = 'crimson';
+            resultP.textContent = data.message || 'Face not recognized';
+        }
+
+    } catch (err) {
+        console.error('Fetch error:', err);
+        resultP.style.color = 'crimson';
+        resultP.textContent = 'Failed to mark attendance.';
+    }
+});
+</script>
+</body>
+</html>
