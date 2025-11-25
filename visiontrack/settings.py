@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -38,9 +39,59 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist', # For token rotation
+    'djoser',
     'corsheaders',
     'core',
+    'user'
 ]
+
+# 1. Point to your custom user model
+AUTH_USER_MODEL = 'user.User'
+
+# 2. REST Framework Config
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+# 3. JWT Configuration (Your specific times)
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),   # 1 Hour Access
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),   # 7 Days Refresh
+    'ROTATE_REFRESH_TOKENS': True,                 # New refresh token every time
+    'BLACKLIST_AFTER_ROTATION': True,              # Old refresh token becomes invalid
+    'AUTH_HEADER_TYPES': ('JWT',),
+}
+
+# 4. Djoser Configuration 
+DJOSER = { 
+    'LOGIN_FIELD': 'email',
+    'USER_CREATE_PASSWORD_RETYPE': True,           # Ask for password twice
+    'SEND_ACTIVATION_EMAIL': True,                 # Required for email confirmation
+    'SEND_CONFIRMATION_EMAIL': True,               # "Welcome" email after activation
+    'ACTIVATION_URL': 'activate/{uid}/{token}',    # Frontend URL
+    'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}',
+    'SERIALIZERS': {
+        'user_create': 'user.serializers.UserCreateSerializer', # Use our custom serializer below
+        'current_user': 'user.serializers.UserSerializer',
+    },
+}
+DOMAIN = 'localhost:8080'
+SITE_NAME = 'VisionTrack'
+
+
+# 5. Email Backend (Prints emails to Terminal for testing)
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# settings.py
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'evolvoria@gmail.com'  # Replace with your actual Gmail address
+EMAIL_HOST_PASSWORD = 'vgdz xdho izlo wglk'      # Replace with your 16-character App Password
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

@@ -13,6 +13,8 @@ pillow = "*"
 bleach = "*"
 djangorestframework = "*"
 django-cors-headers = "*"
+djoser = "*"
+djangorestframework-simplejwt = "*"
 
 [dev-packages]
 
