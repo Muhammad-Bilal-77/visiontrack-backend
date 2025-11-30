@@ -1,15 +1,43 @@
 from django.db import models
+from django.conf import settings
 import numpy as np
 import base64
 from PIL import Image
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 class Employee(models.Model):
-    name = models.CharField(max_length=100)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, limit_choices_to={'role': 'employee'})
     image = models.ImageField(upload_to='employee_images/')
     face_encoding = models.TextField(blank=True)  # Store encoding as base64 string
 
+    @property
+    def name(self):
+        """Get name from linked user."""
+        if self.user:
+            return self.user.get_full_name() or self.user.username
+        return "No User Linked"
+    
+    @property
+    def first_name(self):
+        return self.user.first_name if self.user else ""
+    
+    @property
+    def last_name(self):
+        return self.user.last_name if self.user else ""
+
+    def clean(self):
+        """Validate that the linked user has role 'employee'."""
+        super().clean()
+        if not self.user:
+            raise ValidationError({'user': 'User is required. Please select an employee user.'})
+        if self.user.role != 'employee':
+            raise ValidationError({'user': 'Only users with role "employee" can be added as Employee.'})
+
     def save(self, *args, **kwargs):
+        # Validate before saving
+        self.clean()
+        
         # Import inside save to avoid errors during migrations
         import face_recognition
 
@@ -27,12 +55,17 @@ class Employee(models.Model):
                 self.face_encoding = ''  # No face detected
 
         super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return self.name
 
 
 
 class Attendance(models.Model):
+    """Legacy attendance model - kept for backward compatibility. New records should use attendenceapp.AttendanceLog"""
     employee = models.ForeignKey('Employee', on_delete=models.CASCADE)
     timestamp = models.DateTimeField(default=timezone.now)
+    attendance_log = models.ForeignKey('attendenceapp.AttendanceLog', on_delete=models.SET_NULL, null=True, blank=True, related_name='legacy_attendance')
 
     def __str__(self):
         return f"{self.employee.name} - {self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"

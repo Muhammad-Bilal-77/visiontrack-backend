@@ -1,0 +1,107 @@
+Attendance API Integration Notes
+
+File: attendance_api_integration.txt
+Location: project root
+
+Overview:
+These are the attendance-related REST endpoints implemented in the Django backend (app: attendenceapp).
+All endpoints are restricted to admin users or superusers. Use an admin JWT token when calling them.
+
+Authentication:
+- Header: Authorization: JWT <token>
+- Content-Type: application/json for POSTs
+
+Endpoints: 
+
+1) GET, POST /api/attendance/config/
+   Purpose: Get or update global attendance rules.
+   GET response example:
+   { "start_time": "09:00:00", "end_time": "18:00:00", "late_buffer_minutes": 15 }
+   POST body example:
+   { "start_time": "09:30:00", "end_time": "18:30:00", "late_buffer_minutes": 20 }
+
+2) GET /api/attendance/stats/summary/?month=<n>
+   Purpose: Aggregated dashboard statistics (Top cards + monthly pie chart). Optional month query param (1-12).
+   Response example:
+   {
+     "cards": { "total_employees": 284, "present_today": 256, "late_today": 12, "absent_today": 16 },
+     "pie_chart": [ {"name":"Present","value":75,"color":"#22c55e"}, {"name":"Late","value":15,"color":"#eab308"}, {"name":"Absent","value":10,"color":"#ef4444"} ]
+   }
+
+3) GET /api/attendance/stats/daily/
+   Purpose: Daily attendance trend for the last 7 days.
+   Response example:
+   [ { "name": "Mon", "present": 240, "late": 15, "absent": 29 }, { "name": "Tue", "present": 255, "late": 10, "absent": 19 }, ... ]
+
+4) GET /api/attendance/stats/employees/
+   Purpose: Per-employee stats for the current month.
+   Response example:
+   [ { "id": "1", "name": "John Smith", "present": 20, "late": 2, "absent": 0 }, { "id": "2", "name": "Sarah Johnson", "present": 22, "late": 0, "absent": 1 } ... ]
+
+5) GET /api/attendance/logs/today/
+   Purpose: Today's check-in logs (most recent first).
+   Response example:
+   [ { "id": 101, "employee_id": "EMP001", "name": "John Smith", "time": "09:03 AM", "status": "present" } ]
+
+6) POST /api/attendance/notify/
+   Purpose: Send an email notification to an employee.
+   Request body example:
+   { "employee_id": "1", "message_type": "late_warning" }
+   Success response example:
+   { "message": "Email sent to john@example.com" }
+
+Notes on logic:
+- Late calculation: When creating an AttendanceLog, the backend compares the checkin datetime to
+  AttendanceSettings.start_time + AttendanceSettings.late_buffer_minutes. If checkin > threshold, status = "late" else "present".
+- Absent calculation: Absent = Total Employees - (Present logs + Late logs). For employee monthly stats, "absent" equals working weekdays between month start and today minus (present+late).
+
+Integration examples (fetch):
+
+GET config:
+fetch('/api/attendance/config/', { headers: { 'Authorization': 'JWT ' + token } })
+  .then(r => r.json())
+
+POST update config:
+fetch('/api/attendance/config/', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', 'Authorization': 'JWT ' + token },
+  body: JSON.stringify({ start_time: '09:30:00', end_time: '18:30:00', late_buffer_minutes: 20 })
+}).then(r => r.json())
+
+GET summary (example month=11):
+fetch('/api/attendance/stats/summary/?month=11', { headers: { 'Authorization': 'JWT ' + token } }).then(r => r.json())
+
+GET daily:
+fetch('/api/attendance/stats/daily/', { headers: { 'Authorization': 'JWT ' + token } }).then(r => r.json())
+
+GET employees:
+fetch('/api/attendance/stats/employees/', { headers: { 'Authorization': 'JWT ' + token } }).then(r => r.json())
+
+GET today logs:
+fetch('/api/attendance/logs/today/', { headers: { 'Authorization': 'JWT ' + token } }).then(r => r.json())
+
+POST notify (example using fetch):
+fetch('/api/attendance/notify/', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', 'Authorization': 'JWT ' + token },
+  body: JSON.stringify({ employee_id: '1', message_type: 'late_warning' })
+}).then(r => r.json())
+
+Axios examples:
+axios.get('/api/attendance/config/', { headers: { Authorization: 'JWT ' + token } }).then(res => res.data)
+axios.post('/api/attendance/notify/', { employee_id: '1', message_type: 'late_warning' }, { headers: { Authorization: 'JWT ' + token } })
+
+Server run & migrations (powershell):
+C:/Users/hp/.virtualenvs/visiontrack-jAjsic3G/Scripts/python.exe manage.py makemigrations attendenceapp
+C:/Users/hp/.virtualenvs/visiontrack-jAjsic3G/Scripts/python.exe manage.py migrate
+C:/Users/hp/.virtualenvs/visiontrack-jAjsic3G/Scripts/python.exe manage.py runserver 0.0.0.0:8000
+
+Access control reminder:
+- All endpoints are restricted to users who are superusers OR whose `role` field equals 'admin'.
+- If your frontend users are not admins, either obtain an admin token or implement a backend proxy that performs admin calls.
+
+Optional additions you may want:
+- Public or authenticated `POST /api/attendance/logs/checkin/` for frontline devices or employee check-ins (not implemented yet). This would create AttendanceLog using the backend late-buffer logic.
+- Example React component that fetches all endpoints and renders the dashboard cards and charts.
+
+If you want, I can now add the checkin endpoint or create a short React integration example file.

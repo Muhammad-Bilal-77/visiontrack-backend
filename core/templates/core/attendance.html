@@ -6,16 +6,30 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Mark Attendance</title>
 <style>
-  body { font-family: Arial, sans-serif; background:#f4f4f9; color:#333; }
+  body { font-family: Arial, sans-serif; background:#f4f4f9; color:#333; margin:0; padding:0; }
   .container { max-width:640px; margin:40px auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,.08); text-align:center; }
+  .shift-info { background:#e3f2fd; padding:12px; border-radius:6px; margin-bottom:20px; border-left:4px solid #2196f3; }
+  .shift-info h3 { margin:0 0 8px 0; color:#1976d2; font-size:16px; }
+  .shift-info p { margin:4px 0; font-size:14px; }
   video { border-radius:6px; max-width:100%; }
-  button { padding:10px 18px; background:#007bff; color:#fff; border:none; border-radius:6px; cursor:pointer; }
-  #result { margin-top:14px; font-weight:600; }
+  button { padding:10px 18px; background:#007bff; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:16px; }
+  button:hover { background:#0056b3; }
+  #result { margin-top:14px; font-weight:600; font-size:15px; }
+  .success { color: #28a745; }
+  .error { color: #dc3545; }
 </style>
 </head>
 <body>
   <div class="container">
     <h2>Mark Attendance</h2>
+    
+    <div class="shift-info">
+      <h3>📅 Shift Information</h3>
+      <p><strong>Shift Time:</strong> <span id="shiftTime">Loading...</span></p>
+      <p><strong>Late Buffer:</strong> <span id="lateBuffer">Loading...</span></p>
+      <p><strong>Current Time:</strong> <span id="currentTime">--:--</span></p>
+    </div>
+    
     <video id="video" width="560" height="420" autoplay playsinline></video>
     <div style="margin-top:12px;">
       <button id="snap">Mark Attendance</button>
@@ -45,12 +59,32 @@ const video = document.getElementById('video');
 const snapBtn = document.getElementById('snap');
 const resultP = document.getElementById('result');
 
+// Fetch shift settings
+fetch('/api/attendance/config/', {
+    headers: { 'Authorization': 'JWT ' + (localStorage.getItem('token') || '') }
+})
+.then(r => r.json())
+.then(data => {
+    document.getElementById('shiftTime').textContent = `${data.start_time} - ${data.end_time}`;
+    document.getElementById('lateBuffer').textContent = `${data.late_buffer_minutes} minutes`;
+})
+.catch(() => {
+    document.getElementById('shiftTime').textContent = 'Unable to load';
+});
+
+// Update current time every second
+setInterval(() => {
+    const now = new Date();
+    document.getElementById('currentTime').textContent = now.toLocaleTimeString();
+}, 1000);
+
 navigator.mediaDevices.getUserMedia({ video: true })
   .then(stream => { video.srcObject = stream; })
   .catch(err => { console.error('Webcam error:', err); resultP.textContent = 'Cannot access webcam'; });
 
 snapBtn.addEventListener('click', async () => {
     resultP.textContent = 'Processing...';
+    resultP.className = '';
 
     // capture current frame
     const canvas = document.createElement('canvas');
@@ -75,21 +109,20 @@ snapBtn.addEventListener('click', async () => {
             credentials: 'same-origin'
         });
 
-        // If server returned non-JSON status, handle it
         const data = await res.json();
 
         if (data.status === 'success') {
-            resultP.style.color = 'green';
-            resultP.textContent = data.message;
+            resultP.className = 'success';
+            resultP.textContent = '✓ ' + data.message;
         } else {
-            resultP.style.color = 'crimson';
-            resultP.textContent = data.message || 'Face not recognized';
+            resultP.className = 'error';
+            resultP.textContent = '✗ ' + (data.message || 'Face not recognized');
         }
 
     } catch (err) {
         console.error('Fetch error:', err);
-        resultP.style.color = 'crimson';
-        resultP.textContent = 'Failed to mark attendance.';
+        resultP.className = 'error';
+        resultP.textContent = '✗ Failed to mark attendance.';
     }
 });
 </script>

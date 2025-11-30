@@ -27,6 +27,7 @@ urlpatterns = [
     path('api_core/', include('core.urls')),
     
     path('core/', include('core.urls')),
+    path('api/attendance/', include('attendenceapp.urls')),
 
     path('admin/', admin.site.urls),
     

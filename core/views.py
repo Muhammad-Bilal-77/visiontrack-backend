@@ -3,11 +3,12 @@ from .forms import EmployeeForm
 
 from django.http import JsonResponse
 from .models import Employee, Attendance
+from attendenceapp.models import AttendanceSettings, AttendanceLog
 import cv2
 import numpy as np
 import base64
 import face_recognition
-from datetime import date
+from datetime import date, time, datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 
@@ -89,17 +90,53 @@ def mark_attendance(request):
             THRESHOLD = 0.48
 
             if best_match and best_distance < THRESHOLD:
-                # Avoid double-marking for the same calendar date using timestamp__date
-                already = Attendance.objects.filter(
-                    employee=best_match,
-                    timestamp__date=date.today()
-                ).exists()
+                # Check shift time
+                settings = AttendanceSettings.get_solo()
+                current_datetime = timezone.now()
+                current_time = timezone.localtime(current_datetime).time()
+                today = current_datetime.date()
+                
+                # Check if current time is before shift start
+                if current_time < settings.start_time:
+                    return JsonResponse({
+                        'status': 'error', 
+                        'message': f'Too early! Shift starts at {settings.start_time.strftime("%I:%M %p")}'
+                    })
+                
+                # Check if current time is after shift end
+                if current_time > settings.end_time:
+                    return JsonResponse({
+                        'status': 'error', 
+                        'message': f'You are late! Shift ended at {settings.end_time.strftime("%I:%M %p")}'
+                    })
+                
+                # Within shift hours - check if already marked today
+                already_log = AttendanceLog.objects.filter(
+                    employee=best_match.user,
+                    checkin_time__date=today
+                ).first()
 
-                if not already:
-                    Attendance.objects.create(employee=best_match, timestamp=timezone.now())
-                    return JsonResponse({'status': 'success', 'message': f'Attendance marked for {best_match.name}'})
+                if not already_log:
+                    # Create AttendanceLog entry (automatically determines late/present status)
+                    attendance_log = AttendanceLog.create_checkin(best_match.user, current_datetime)
+                    
+                    # Also create legacy Attendance record for backward compatibility
+                    Attendance.objects.create(
+                        employee=best_match, 
+                        timestamp=current_datetime,
+                        attendance_log=attendance_log
+                    )
+                    
+                    status_msg = 'late' if attendance_log.status == AttendanceLog.STATUS_LATE else 'on time'
+                    return JsonResponse({
+                        'status': 'success', 
+                        'message': f'Attendance marked for {best_match.name} ({status_msg})'
+                    })
                 else:
-                    return JsonResponse({'status': 'success', 'message': f'{best_match.name} already marked today'})
+                    return JsonResponse({
+                        'status': 'success', 
+                        'message': f'{best_match.name} already marked today'
+                    })
 
             # No suitable match found
             return JsonResponse({'status': 'error', 'message': 'Face not recognized'})

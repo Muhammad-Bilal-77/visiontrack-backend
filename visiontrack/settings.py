@@ -44,8 +44,9 @@ INSTALLED_APPS = [
     'corsheaders',
     'core',
     'user'
+    ,'attendenceapp'
 ]
-
+ 
 # 1. Point to your custom user model
 AUTH_USER_MODEL = 'user.User'
 
