@@ -10,6 +10,7 @@ from django.core.mail import send_mail
 from .models import AttendanceSettings, AttendanceLog
 from .serializers import AttendanceSettingsSerializer, AttendanceLogSerializer
 from user.models import User
+from core.models import Employee
 
 import calendar
 from datetime import datetime, timedelta, date
@@ -179,3 +180,62 @@ class NotifyView(APIView):
             return Response({"message": f"Email sent to {user.email}"})
         except Exception as e:
             return Response({"message": f"Failed to send email: {str(e)}"}, status=500)
+
+
+class DailyAttendanceReportView(APIView):
+    permission_classes = [IsAdminOrSuperUser]
+
+    def get(self, request):
+        """Get attendance report for a specific date"""
+        date_param = request.query_params.get('date')
+        
+        if not date_param:
+            return Response({
+                'success': False,
+                'message': 'Date parameter is required (format: YYYY-MM-DD)'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            target_date = datetime.strptime(date_param, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({
+                'success': False,
+                'message': 'Invalid date format. Use YYYY-MM-DD'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Get all employees
+        all_employees = Employee.objects.select_related('user').filter(user__is_active=True)
+        
+        results = []
+        
+        for emp in all_employees:
+            # Check if employee has attendance log for this date
+            log = AttendanceLog.objects.filter(
+                employee=emp.user,
+                checkin_time__date=target_date
+            ).first()
+            
+            if log:
+                # Employee checked in
+                status_value = "Present" if log.status == AttendanceLog.STATUS_PRESENT else "Late"
+                timestamp = log.checkin_time.isoformat()
+                verification = "face"
+            else:
+                # Employee is absent
+                status_value = "Absent"
+                timestamp = f"{target_date}T00:00:00Z"
+                verification = "manual"
+            
+            results.append({
+                "id": str(log.id if log else emp.id),
+                "employeeId": emp.user.username,
+                "employeeName": emp.name,
+                "timestamp": timestamp,
+                "status": status_value,
+                "verificationMethod": verification
+            })
+        
+        return Response({
+            'success': True,
+            'results': results
+        })

@@ -1,9 +1,6 @@
 from django.urls import path
-from django.http import JsonResponse
-
-def user_index(request):
-    return JsonResponse({"message": "Hello from user API!"})
+from .views import verify
 
 urlpatterns = [
-    path('', user_index, name='user_index'),
+    path('auth/verify/', verify, name='auth_verify'),
 ]

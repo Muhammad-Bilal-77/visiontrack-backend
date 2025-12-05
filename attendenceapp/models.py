@@ -45,10 +45,14 @@ class AttendanceLog(models.Model):
 
         settings_obj = AttendanceSettings.get_solo()
 
-        # Build a datetime for today's start time
-        start_dt = timezone.datetime.combine(checkin_time.date(), settings_obj.start_time)
-        if timezone.is_aware(checkin_time) and timezone.is_naive(start_dt):
-            start_dt = timezone.make_aware(start_dt, timezone.get_current_timezone())
+        # Convert checkin_time to local timezone for date extraction
+        local_checkin = timezone.localtime(checkin_time)
+        today = local_checkin.date()
+
+        # Build a naive datetime for today's start time, then make it aware in local timezone
+        start_dt_naive = timezone.datetime.combine(today, settings_obj.start_time)
+        current_tz = timezone.get_current_timezone()
+        start_dt = timezone.make_aware(start_dt_naive, current_tz)
 
         # add buffer
         buffer_delta = timezone.timedelta(minutes=settings_obj.late_buffer_minutes)

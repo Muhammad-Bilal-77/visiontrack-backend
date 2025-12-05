@@ -8,4 +8,5 @@ urlpatterns = [
     path('stats/employees/', views.EmployeeStatsView.as_view(), name='attendance-employees'),
     path('logs/today/', views.TodayLogsView.as_view(), name='attendance-today-logs'),
     path('notify/', views.NotifyView.as_view(), name='attendance-notify'),
+    path('', views.DailyAttendanceReportView.as_view(), name='attendance-daily-report'),
 ]

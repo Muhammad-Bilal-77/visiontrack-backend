@@ -25,8 +25,7 @@ class User(AbstractUser):
         """Prevent direct creation of employee users. Employees must be created through Employee model in core app."""
         super().clean()
         # Only validate on creation (when pk is None)
-        if not self.pk and self.role == self.EMPLOYEE:
-            raise ValidationError({'role': 'Cannot directly create users with employee role. Employees must be created through the Employee model in the core app.'})
+       
 
     def save(self, *args, **kwargs):
         # Run validation before save (only for new users)

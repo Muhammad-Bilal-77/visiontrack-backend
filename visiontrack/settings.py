@@ -59,7 +59,7 @@ REST_FRAMEWORK = {
 
 # 3. JWT Configuration (Your specific times)
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),   # 1 Hour Access
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # 60 Minutes Access
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),   # 7 Days Refresh
     'ROTATE_REFRESH_TOKENS': True,                 # New refresh token every time
     'BLACKLIST_AFTER_ROTATION': True,              # Old refresh token becomes invalid
@@ -166,7 +166,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Karachi'
 
 USE_I18N = True
 
