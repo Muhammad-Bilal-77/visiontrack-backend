@@ -30,6 +30,16 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
+# CSRF trusted origins (comma-separated). Fallback: derive https://<host> for non-local hosts
+_raw_csrf_origins = config('CSRF_TRUSTED_ORIGINS', default='')
+if _raw_csrf_origins:
+    CSRF_TRUSTED_ORIGINS = [h.strip() for h in _raw_csrf_origins.split(',') if h.strip()]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        f"https://{h.strip()}" for h in ALLOWED_HOSTS
+        if h.strip() not in {'localhost', '127.0.0.1'} and h.strip() != ''
+    ]
+
 
 # Application definition
 
