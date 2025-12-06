@@ -37,9 +37,9 @@ services:
         value: VisionTrack
 
   # PostgreSQL Database
-  - type: pgsql
-    name: visiontrack-db
-    region: oregon
-    plan: free
+databases:
+  - name: visiontrack-db
     databaseName: visiontrack
     user: visiontrack
+    region: oregon
+    plan: free
