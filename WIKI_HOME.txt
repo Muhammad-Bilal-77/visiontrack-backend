@@ -1,0 +1,101 @@
+VisionTrack Backend - Wiki Home
+================================
+
+Overview
+--------
+Django REST API for face-recognition-based attendance tracking. Provides JWT auth, role-based access, employee management, and attendance logging with face verification support.
+
+Key Features
+------------
+- JWT auth with refresh/blacklist and Djoser integration
+- Role-based permissions (Admin, Employee)
+- Attendance check-in/out with business rules and face verification
+- Employee CRUD with profile images and face encodings
+- PostgreSQL persistence; media storage for uploaded images
+- CORS-enabled for frontend integration
+
+Quick Start
+-----------
+1) Clone and install
+   - git clone https://github.com/Muhammad-Bilal-77/visiontrack-backend.git
+   - cd visiontrack-backend
+   - python -m venv venv
+   - On Windows: venv\Scripts\activate
+   - pip install -r requirements.txt
+
+2) Configure environment
+   - Copy .env.example to .env
+   - Fill SECRET_KEY, DB_* and email credentials
+
+3) Database setup
+   - python manage.py migrate
+   - python manage.py createsuperuser
+
+4) Run server
+   - python manage.py runserver
+
+Security and Secrets
+--------------------
+- Keep .env out of git; secrets are not committed
+- Set DEBUG=False and configure ALLOWED_HOSTS in production
+- Store media securely; face images are git-ignored
+
+Environment Variables (.env)
+---------------------------
+- SECRET_KEY=
+- DEBUG=True|False
+- DB_ENGINE=django.db.backends.postgresql_psycopg2
+- DB_NAME=
+- DB_USER=
+- DB_PASSWORD=
+- DB_HOST=localhost
+- DB_PORT=5432
+- EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+- EMAIL_HOST=smtp.gmail.com
+- EMAIL_PORT=587
+- EMAIL_USE_TLS=True
+- EMAIL_HOST_USER=
+- EMAIL_HOST_PASSWORD=
+- DOMAIN=localhost:8080
+- SITE_NAME=VisionTrack
+
+API Auth
+--------
+- Obtain token: POST /auth/jwt/create/
+- Refresh token: POST /auth/jwt/refresh/
+- Auth header: Authorization: JWT <access_token>
+
+Core Endpoints (high level)
+---------------------------
+- Employees: GET/POST /api/employees/ (admin), detail/update/delete via /api/employees/<id>/
+- Attendance: POST /api/attendance/check-in/, POST /api/attendance/check-out/
+- Attendance views: GET /api/attendance/today/, GET /api/attendance/history/<employee_id>/, GET /api/attendance/by-date/?date=YYYY-MM-DD
+
+Data Model Highlights
+---------------------
+- Employee: user FK, email, role, face_image, face_encoding
+- AttendanceRecord: employee, check_in, check_out, status
+- AttendanceLog: audit trail of events
+
+Testing
+-------
+- (Add your preferred test command) e.g., python manage.py test
+
+Deployment Notes
+----------------
+- Use gunicorn/uvicorn + reverse proxy
+- Apply database migrations on deploy
+- Configure static/media serving
+- Set secure settings: DEBUG=False, proper ALLOWED_HOSTS, strong SECRET_KEY
+
+Troubleshooting
+---------------
+- 400 on auth: verify JWT header format
+- 401: missing/expired token
+- 403: insufficient role (admin vs employee)
+- Face verification issues: verify image quality and encoding storage
+
+Useful Links
+------------
+- API guide: EMPLOYEE_API_DOCUMENTATION.md
+- README: project overview and setup

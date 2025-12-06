@@ -1,0 +1,208 @@
+VisionTrack Backend - Release v1.0.0
+====================================
+
+Release Date: December 5, 2025
+
+What's New in v1.0.0
+====================
+
+Core Features
+-------------
+✓ Face Recognition Attendance System
+  - Employee check-in/check-out with face verification
+  - Face encoding storage and management
+  - Attendance history and reporting
+
+✓ RESTful API
+  - 15+ endpoints for employee and attendance management
+  - Full CRUD operations for employees
+  - Attendance filtering by date, employee, and status
+
+✓ Authentication & Security
+  - JWT-based authentication with token refresh/blacklist
+  - Role-based access control (Admin, Employee)
+  - Djoser integration for user management
+  - Email verification and password reset
+  - CORS configuration for frontend integration
+
+✓ Employee Management
+  - Employee profile with image upload
+  - Role assignment (Admin/Employee)
+  - Face encoding storage for verification
+  - Email-based user creation and activation
+
+✓ Attendance Tracking
+  - Real-time check-in/check-out
+  - Business logic validation (duplicate prevention)
+  - Attendance log with audit trail
+  - Date-wise and employee-wise filtering
+  - Status tracking (Present, Absent, Late, etc.)
+
+✓ Database & Storage
+  - PostgreSQL integration
+  - Media file handling for employee images
+  - Face image storage with encoding data
+  - Migration support for schema updates
+
+✓ Email Integration
+  - SMTP configuration for Gmail
+  - Activation emails
+  - Password reset emails
+  - Welcome emails after registration
+
+✓ Documentation
+  - Comprehensive README
+  - API documentation with cURL examples
+  - Environment configuration guide
+  - Setup instructions
+
+Project Statistics
+==================
+- Files: 318 objects
+- Lines of Code: ~1500+ (core logic)
+- API Endpoints: 15+
+- Database Models: 5 (User, Employee, AttendanceRecord, AttendanceLog, etc.)
+- Supported Python Version: 3.13+
+- Django Version: 5.2.8
+
+Installation & Setup
+====================
+
+Prerequisites
+- Python 3.13+
+- PostgreSQL 12+
+- pip/virtualenv
+
+Installation Steps:
+1. git clone https://github.com/Muhammad-Bilal-77/visiontrack-backend.git
+2. cd visiontrack-backend
+3. python -m venv venv
+4. venv\Scripts\activate (Windows) or source venv/bin/activate (Linux/Mac)
+5. pip install -r requirements.txt
+6. cp .env.example .env (configure your credentials)
+7. python manage.py migrate
+8. python manage.py createsuperuser
+9. python manage.py runserver
+
+Key Configurations
+- Django Settings: visiontrack/settings.py
+- Database: PostgreSQL (configurable via .env)
+- Media Root: media/ directory
+- Static Files: static/ directory (configured)
+
+API Highlights
+==============
+
+Authentication
+- POST /auth/jwt/create/ → Get JWT token
+- POST /auth/jwt/refresh/ → Refresh access token
+- POST /auth/jwt/blacklist/ → Logout
+
+Employee Management
+- GET /api/employees/ → List all employees
+- POST /api/employees/ → Create new employee
+- GET /api/employees/<id>/ → Employee detail
+- PUT /api/employees/<id>/ → Update employee
+- DELETE /api/employees/<id>/ → Delete employee
+
+Attendance Operations
+- POST /api/attendance/check-in/ → Employee check-in
+- POST /api/attendance/check-out/ → Employee check-out
+- GET /api/attendance/today/ → Today's records
+- GET /api/attendance/history/<id>/ → Employee history
+- GET /api/attendance/by-date/?date=YYYY-MM-DD → Date-wise records
+
+User Management (Djoser)
+- POST /auth/users/ → Create user
+- GET /auth/users/me/ → Current user
+- POST /auth/users/set_password/ → Change password
+- POST /auth/users/reset_password/ → Reset password
+
+Security Features
+=================
+✓ Environment variable management via python-decouple
+✓ .gitignore configured to exclude sensitive data
+✓ JWT token blacklisting for secure logout
+✓ Role-based permission classes
+✓ CSRF protection enabled
+✓ Secure password hashing (Django default)
+✓ Email verification workflow
+✓ Face image privacy (git-ignored)
+
+Known Limitations & Future Enhancements
+======================================
+- Face recognition matching algorithm not yet implemented (ready for integration)
+- Batch import of employees not yet available
+- Real-time dashboard not included in v1.0
+- SMS notifications not implemented
+
+Future Roadmap:
+- Face recognition matching algorithm integration
+- Bulk employee import via CSV
+- Advanced reporting & analytics dashboard
+- Mobile app support
+- Real-time notifications
+- Biometric device integration
+- Performance optimization for large-scale deployment
+
+Dependencies
+============
+Key packages included in requirements.txt:
+- Django 5.2.8
+- djangorestframework
+- django-rest-framework-simplejwt
+- djoser
+- django-cors-headers
+- psycopg2-binary
+- python-decouple
+- Pillow (image handling)
+
+Contributors
+============
+Muhammad Bilal (Muhammad-Bilal-77)
+
+License
+=======
+Educational/Internal Use
+
+Support & Feedback
+==================
+For issues, feature requests, or questions:
+1. Check EMPLOYEE_API_DOCUMENTATION.md for API details
+2. Review README.md for setup help
+3. Check WIKI_HOME for architecture and endpoints overview
+4. Create GitHub issues for bugs/feature requests
+
+Testing
+=======
+To run tests:
+python manage.py test
+
+Current test coverage:
+- User authentication and token management
+- Employee CRUD operations
+- Attendance check-in/check-out flow
+- Permission validation
+
+Version Info
+============
+Version: 1.0.0
+Release Date: December 5, 2025
+Git Commit: 7e126f8 (Add README and requirements.txt)
+Repository: https://github.com/Muhammad-Bilal-77/visiontrack-backend
+
+Upgrade Notes
+=============
+This is the initial release. No upgrade path needed.
+
+Getting Help
+============
+- API Documentation: EMPLOYEE_API_DOCUMENTATION.md
+- Project Wiki: WIKI_HOME.txt
+- README: README.md
+- Code Comments: Inline documentation in models.py, views.py, serializers.py
+
+---
+
+VisionTrack Backend v1.0.0 is ready for development and testing!
+Thank you for using VisionTrack Attendance System.
