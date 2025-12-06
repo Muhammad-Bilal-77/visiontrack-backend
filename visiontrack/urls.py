@@ -37,5 +37,5 @@ urlpatterns = [
     path('auth/verify/', verify, name='auth_verify'),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Serve media files (note: for production use a proper media host like S3/Cloudinary)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
