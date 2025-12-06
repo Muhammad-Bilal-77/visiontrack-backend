@@ -91,7 +91,7 @@ DJOSER = {
         'current_user': 'user.serializers.UserSerializer',
     },
 }
-DOMAIN = config('DOMAIN', default='visiontrackai.netlify.app')
+DOMAIN = config('DOMAIN', default='https://visiontrackai.netlify.app')
 SITE_NAME = config('SITE_NAME', default='VisionTrack')
 
 
