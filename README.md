@@ -1,4 +1,5 @@
 # VisionTrack - Face Recognition Attendance System
+<img width="1916" height="942" alt="Screenshot 2025-12-05 170327" src="https://github.com/user-attachments/assets/3cb175de-f2e5-49b0-b860-4c1fc4c2b1c3" />
 
 A comprehensive Django-based attendance tracking system with face recognition capabilities and RESTful API.
 
@@ -114,3 +115,6 @@ This project is for educational purposes.
 - Use strong passwords for production deployment
 - Configure ALLOWED_HOSTS for production
 - Set DEBUG=False in production
+<img width="1903" height="969" alt="Screenshot 2025-12-05 112601" src="https://github.com/user-attachments/assets/da7b2a2f-3533-46dc-9cbe-7e4c5437dc76" />
+<img width="1873" height="908" alt="Screenshot 2025-12-05 112356" src="https://github.com/user-attachments/assets/8c6c1c6e-5fda-4c66-ad3f-47245f29b1dc" />
+<img width="1883" height="940" alt="Screenshot 2025-12-05 112801" src="https://github.com/user-attachments/assets/08b1b40b-ee60-4e58-b8a2-e23127b52482" />
